@@ -2,7 +2,7 @@
 
 A React Native (Android) learning dashboard: mock login, a course list with progress, lesson completion, and offline access to previously loaded courses.
 
-**Download APK:** [app-release.apk (Google Drive)](https://drive.google.com/file/d/1f1nG5TlGykABo3fAGfEVVZu1W9YVPNsV/view?usp=drive_link)
+**APK + demo video:** [Google Drive folder](https://drive.google.com/drive/folders/18aCpeQuPmjNUYV5YOTCR0vg_DCPcDfbM?usp=sharing) (`Intelliipaat.apk`, `appDemo.mp4`)
 
 **Demo login:** `rahul@test.com` / `password@123` (or `rohan@test.com` / `password@456`)
 
