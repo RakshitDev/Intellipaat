@@ -13,5 +13,8 @@ export const colors = {
   successTint: '#E8F6EC',
   error: '#DC3545',
   errorTint: '#FDECEE',
+  warning: '#8A4B00',
+  warningTint: '#FFF4E5',
+  skeleton: '#ECEEF2',
   white: '#FFFFFF',
 };
