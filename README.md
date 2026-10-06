@@ -2,6 +2,8 @@
 
 A React Native (Android) learning dashboard: mock login, a course list with progress, lesson completion, and offline access to previously loaded courses.
 
+**Download APK:** [app-release.apk (Google Drive)](https://drive.google.com/file/d/1f1nG5TlGykABo3fAGfEVVZu1W9YVPNsV/view?usp=drive_link)
+
 **Demo login:** `rahul@test.com` / `password@123` (or `rohan@test.com` / `password@456`)
 
 **Run:** `npm install` → `npx react-native run-android` · **Test:** `npx jest` · **APK:** `cd android && ./gradlew assembleRelease`
