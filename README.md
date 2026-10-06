@@ -1,97 +1,41 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Intellipaat Learn
 
-# Getting Started
+A React Native (Android) learning dashboard: mock login, a course list with progress, lesson completion, and offline access to previously loaded courses.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+**Demo login:** `rahul@test.com` / `password@123` (or `rohan@test.com` / `password@456`)
 
-## Step 1: Start Metro
+**Run:** `npm install` → `npx react-native run-android` · **Test:** `npx jest` · **APK:** `cd android && ./gradlew assembleRelease`
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
 ```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+src/
+  screens/      Login, Dashboard, CourseDetails        (UI only)
+  components/   CourseCard, LessonRow, StateView, …    (presentational, props in → UI out)
+  context/      AuthContext, CourseContext              (state + actions — the "ViewModel" layer)
+  repository/   courseRepository                        (network-first, cache fallback, merges local progress)
+  services/     courseApi, authService                  (network / mock API)
+  storage/      courseStorage                           (AsyncStorage)
+  utils/        progress, validation                    (pure functions)
 ```
+Courses come from a static JSON file in this repo ([`mock/courses.json`](mock/courses.json)) fetched over HTTPS — a real network call with no backend, so loading, failure and offline states are genuine.
 
-### iOS
+## 1. Architecture
+Layered, MVVM-style: **Screen → Context (state + actions) → Repository → API + Storage.** Screens never call `fetch` or AsyncStorage; they render state and call actions. The repository is the only place that decides *where* data comes from, so swapping the mock API for a real one, or AsyncStorage for SQLite, touches one file. Course state uses `useReducer`, so every transition (loading → success / error, lesson completed) is explicit and testable. Auth uses React Navigation's conditional-stack pattern: when `user` becomes `null` the Dashboard stack unmounts, so Back can never return to a logged-in screen.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+## 2. Offline support
+Network-first with cache fallback. Every successful fetch is saved to AsyncStorage with a timestamp. If the request fails (offline, timeout, non-200), the repository returns the cached copy and the Dashboard shows *"You're offline. Showing courses saved today at 2:15 PM."* Completed lessons are stored **under a separate key** and merged on top of server data, so a fresh download never wipes local progress. Progress is always **derived** (completed ÷ total), never stored, so it cannot drift. Marking a lesson is optimistic: the UI updates instantly and rolls back if the write fails.
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+## 3. Security
+Tokens belong in hardware-backed secure storage: **Android Keystore / iOS Keychain**, via `react-native-keychain` or EncryptedSharedPreferences, never plain AsyncStorage (unencrypted, readable on rooted devices). I'd also use short-lived access tokens with a refresh token, HTTPS with certificate pinning, and no secrets in the JS bundle. This demo keeps a mock token in AsyncStorage only because there is no real auth.
 
-```sh
-bundle install
-```
+## 4. Scale (1M users, hundreds of courses)
+1. **Pagination + server-side search** instead of one JSON payload; `FlatList` tuning (`getItemLayout`, `windowSize`) or FlashList.
+2. **SQLite (op-sqlite / WatermelonDB)** instead of AsyncStorage for indexed queries over large lesson sets.
+3. **Offline write queue:** sync lesson completions to the backend with retries, idempotency keys and conflict resolution (server timestamp wins).
+4. **TanStack Query** for caching, deduplication and background refetch, plus HTTP caching (ETag) and a CDN for course content.
+5. **Observability:** crash reporting (Sentry/Crashlytics), performance tracing, feature flags and staged rollouts.
 
-Then, and every time you update your native dependencies, run:
+## 5. Second platform (iOS)
+The same codebase builds for iOS with `cd ios && pod install && npx react-native run-ios`; the only platform-specific work is App Store signing and Keychain configuration. For a fully native rewrite, the layers map 1:1: **SwiftUI** views → `@Observable` **ViewModels** → a **Repository** using `URLSession` + `async/await` → **SwiftData** for the cache, with tokens in **Keychain**, tested with XCTest.
 
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+## Testing
+[`__tests__/courseRepository.test.js`](__tests__/courseRepository.test.js) covers progress calculation, merging local completion, and the repository's network / cache-fallback / no-cache-error paths, with the API and storage mocked.
